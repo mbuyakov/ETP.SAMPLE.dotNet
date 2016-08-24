@@ -69,11 +69,11 @@ namespace etp
                 // mq properties
                 properties = new Hashtable();
                 properties.Add(MQC.TRANSPORT_PROPERTY, MQC.TRANSPORT_MQSERIES_MANAGED);
-                properties.Add(MQC.CONNECT_OPTIONS_PROPERTY, MQC.MQCNO_RECONNECT);
+                properties.Add(MQC.CONNECT_OPTIONS_PROPERTY, reconnectOption);
                 properties.Add(MQC.CONNECTION_NAME_PROPERTY, connectionNameList);
                 properties.Add(MQC.CHANNEL_PROPERTY, channelName);
-               // properties.Add(MQC.USER_ID_PROPERTY, "gin" );
-               // properties.Add(MQC.PASSWORD_PROPERTY, "gin");
+               // properties.Add(MQC.USER_ID_PROPERTY, "sample" );
+               // properties.Add(MQC.PASSWORD_PROPERTY, "sample");
 
                 // display all details
                 Console.WriteLine("MQ Parameters");
@@ -92,7 +92,7 @@ namespace etp
                 putMessageOptions = new MQPutMessageOptions();
 
                 // Message data
-                String data = "Тест " + string.Format("{0:yyyy-MM-dd_hh-mm-ss-tt}", DateTime.Now);
+                String data = "Тест " + string.Format("{0:yyyy-MM-dd_hh-mm-ss}", DateTime.Now);
 
                 message = new MQMessage();
                 message.Format = MQC.MQFMT_STRING;
