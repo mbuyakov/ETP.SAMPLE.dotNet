@@ -12,23 +12,21 @@ namespace etp
     {
         private String queueManagerName = "GU01QM";
         private String connectionNameList = "etp3.sm-soft.ru(2424),etp4.sm-soft.ru(2424)";
-        /// <summary>
+        // Sample channel name
+        // TODO: change for customer
+        private String channelName = "CLNT.SAMPLE.SVRCONN";
+        /// Name of the Queue.
+        /// TODO: change for customer
+        private String destination = "SAMPLE.APPLICATION_INC";
+
         /// The reconnect option. Referred from IBM.WMQ.MQC.
         /// 
-        /// 0 - MQC.WMQ_CLIENT_RECONNECT_DISABLED
-        /// 1 - MQC.WMQ_CLIENT_RECONNECT 
-        /// 2 - MQC.WMQ_CLIENT_RECONNECT_Q_MGR (default value)
-        /// 3 - MQC.WMQ_CLIENT_RECONNECT_AS_DEF
-        /// </summary>
-        private int reconnectOption = 2; //(default value);
-        private String channelName = "ERP.GIN.SVRCONN";
-        private String destination = "ERP.GIN.MSG_INC";
-        /// <summary>
-        /// Name of the Queue.
-        /// </summary>
-        /// <summary>
+        /// 0 - MQC.WQCNO_CLIENT_RECONNECT_DISABLED
+        /// 1 - MQC.WQCNO_CLIENT_RECONNECT 
+        /// 2 - MQC.WQCNO_CLIENT_RECONNECT_Q_MGR (default value)
+        /// 3 - MQC.WQCNO_CLIENT_RECONNECT_AS_DEF
+         private int reconnectOption = MQC.MQCNO_RECONNECT_Q_MGR; //(default value);
         /// Variables
-        ///</summary>
         private MQQueueManager queueManager;
         private MQQueue queue;
         private MQQueue errorQueue;
@@ -37,7 +35,6 @@ namespace etp
         private MQMessage message;
         private MQGetMessageOptions getMessageOptions;
         private MQPutMessageOptions putMessageOptions;
-        private int numberOfMsgs = 10;
 
         // Message data
         String data;
@@ -79,7 +76,7 @@ namespace etp
                 // mq properties
                 properties = new Hashtable();
                 properties.Add(MQC.TRANSPORT_PROPERTY, MQC.TRANSPORT_MQSERIES_MANAGED);
-                properties.Add(MQC.CONNECT_OPTIONS_PROPERTY, MQC.MQCNO_RECONNECT);
+                properties.Add(MQC.CONNECT_OPTIONS_PROPERTY, reconnectOption);
                 properties.Add(MQC.CONNECTION_NAME_PROPERTY, connectionNameList);
                 properties.Add(MQC.CHANNEL_PROPERTY, channelName);
 
@@ -90,12 +87,11 @@ namespace etp
                 Console.WriteLine("2) connectionNameList = " + connectionNameList);
                 Console.WriteLine("3) reconnectOption = " + reconnectOption);
                 Console.WriteLine("4) channel = " + channelName);
-                Console.WriteLine("5) numberOfMsgs = " + numberOfMsgs);
                 Console.WriteLine("5) queueManagerName = " + queueManagerName);
 
                 queueManager = new MQQueueManager(queueManagerName, properties);
 
-                Console.Write("Accessing queue " + destination + ".. ");
+                Console.WriteLine("Accessing queue " + destination + ".. ");
                 queue = queueManager.AccessQueue(destination, MQC.MQOO_INPUT_AS_Q_DEF + MQC.MQOO_FAIL_IF_QUIESCING + MQC.MQOO_INQUIRE);
                 Console.WriteLine("Current queue depth = " +  queue.CurrentDepth);
 
@@ -109,13 +105,13 @@ namespace etp
 
 
                 // create PutMessageOptions object
-                putMessageOptions = new MQPutMessageOptions();
+                // putMessageOptions = new MQPutMessageOptions();
 
                 
                 // getting messages continuously
-                for (int i = 1; i <= numberOfMsgs; i++)
+                int i = 0;
+                while (true)
                 {
-
                  //   ts = new TransactionScope();
                 //    using (ts)
                  //   {
@@ -125,19 +121,21 @@ namespace etp
 
                         // creating a message object
                         message = new MQMessage();
-
                         queue.Get(message, getMessageOptions);
 
+                        i++;
+
                         data = message.ReadString(message.MessageLength);
-                        //String ApplicationId = message.GetStringProperty("ApplicationId");
+                        // Get message properties sample
+                        // String ApplicationId = message.GetStringProperty("ApplicationId");
                         DateTime date = message.PutDateTime;
-                        Console.WriteLine("Message " + i + " got = " + data + " date = " + date /*+ " ApplicationId = " + ApplicationId*/);
+                        Console.WriteLine("Message " + i + " msgId " +  BitConverter.ToString(message.MQMD.MsgId).Replace("-","") + "  got = " + data + " date = " + date /*+ " ApplicationId = " + ApplicationId*/);
 
-
+                        // Sample of error check
                         if (data.StartsWith("ошибка"))
                         {
-                            errorQueue.Put(message, putMessageOptions);
-                            errorQueue.Put(message);
+                            errorQueue.Put(message/*, putMessageOptions*/);
+                            Console.WriteLine("Message " + i + " msgId " + BitConverter.ToString(message.MQMD.MsgId).Replace("-", "") + " put to backout queue " + errorQueue.Name);
                         }
 
                         if (data.StartsWith("откат"))
@@ -155,14 +153,14 @@ namespace etp
                     {
                         if (mqe.ReasonCode == 2033)
                         {
-                            Console.WriteLine("No message " + i + " available");
+                            Console.WriteLine("No message available " + DateTime.Now);
                           //  ts.Complete();             
-                            Thread.Sleep(1000);
                             continue;
                         }
                         else
                         {
                             Console.WriteLine("MQException caught: {0} - {1}", mqe.ReasonCode, mqe.Message);
+                            Console.WriteLine("QManager backout");
                             queueManager.Backout();
                             break;
                         }
@@ -201,5 +199,4 @@ namespace etp
             }
         }
     }
-
 }

@@ -10,23 +10,21 @@ namespace etp
     {
         private String queueManagerName = "GU01QM";
         private String connectionNameList = "etp3.sm-soft.ru(2424),etp4.sm-soft.ru(2424)";
-        /// <summary>
+        // Sample channel name
+        // TODO: change for customer
+        private String channelName = "CLNT.SAMPLE.SVRCONN";
+        /// Name of the Queue.
+        /// TODO: change for customer
+        private String destination = "SAMPLE.STATUS_OUT";
+
         /// The reconnect option. Referred from IBM.WMQ.MQC.
         /// 
-        /// 0 - MQC.WMQ_CLIENT_RECONNECT_DISABLED
-        /// 1 - MQC.WMQ_CLIENT_RECONNECT 
-        /// 2 - MQC.WMQ_CLIENT_RECONNECT_Q_MGR (default value)
-        /// 3 - MQC.WMQ_CLIENT_RECONNECT_AS_DEF
-        /// </summary>
-        private int reconnectOption = 2; //(default value);
-        private String channelName = "ERP.GIN.SVRCONN";
-        private String destination = "ERP.GIN.MSG_OUT";
-        /// <summary>
-        /// Name of the Queue.
-        /// </summary>
-        /// <summary>
+        /// 0 - MQC.WQCNO_CLIENT_RECONNECT_DISABLED
+        /// 1 - MQC.WQCNO_CLIENT_RECONNECT 
+        /// 2 - MQC.WQCNO_CLIENT_RECONNECT_Q_MGR (default value)
+        /// 3 - MQC.WQCNO_CLIENT_RECONNECT_AS_DEF
+        private int reconnectOption = MQC.MQCNO_RECONNECT_Q_MGR; //(default value);
         /// Variables
-        ///</summary>
         private MQQueueManager queueManager;
         private MQQueue queue;
 
@@ -97,8 +95,12 @@ namespace etp
                 String data = "Тест " + string.Format("{0:yyyy-MM-dd_hh-mm-ss-tt}", DateTime.Now);
 
                 message = new MQMessage();
+                message.Format = MQC.MQFMT_STRING;
                 message.CharacterSet = 1208;
                 message.WriteUTF(data);
+
+                // Set property if your need
+                message.SetStringProperty("TestProperty","Тестовое значение");
 
                 queue.Put(message,putMessageOptions);
 
