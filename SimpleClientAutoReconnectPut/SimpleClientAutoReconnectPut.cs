@@ -97,7 +97,7 @@ namespace etp
                 message = new MQMessage();
                 message.Format = MQC.MQFMT_STRING;
                 message.CharacterSet = 1208;
-                message.WriteUTF(data);
+                message.WriteString(data);
 
                 // Set property if your need
                 message.SetStringProperty("TestProperty","Тестовое значение");
