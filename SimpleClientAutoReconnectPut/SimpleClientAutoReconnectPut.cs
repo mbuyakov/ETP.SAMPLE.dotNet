@@ -90,11 +90,13 @@ namespace etp
                 queue = queueManager.AccessQueue(destination,  MQC.MQOO_OUTPUT + MQC.MQOO_FAIL_IF_QUIESCING);
                 // create PutMessageOptions object
                 putMessageOptions = new MQPutMessageOptions();
+                putMessageOptions.Options = MQC.MQPMO_NEW_MSG_ID;
 
                 // Message data
                 String data = "Тест " + string.Format("{0:yyyy-MM-dd_hh-mm-ss}", DateTime.Now);
 
                 message = new MQMessage();
+                message.MessageId = MQC.MQMI_NONE;
                 message.Format = MQC.MQFMT_STRING;
                 message.CharacterSet = 1208;
                 message.WriteString(data);
@@ -103,8 +105,16 @@ namespace etp
                 message.SetStringProperty("TestProperty","Тестовое значение");
 
                 queue.Put(message,putMessageOptions);
-
                 message.ClearMessage();
+                // message.MessageId = MQC.MQMI_NONE;
+
+
+                // Send second message 
+                data = "Тест " + string.Format("{0:yyyy-MM-dd_hh-mm-ss}", DateTime.Now);
+                message.WriteString(data);
+                queue.Put(message, putMessageOptions);
+                message.ClearMessage();
+
 
                 // closing destination
                 Console.Write("Closing queue " + destination + ".. ");
