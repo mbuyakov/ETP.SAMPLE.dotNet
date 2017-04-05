@@ -98,8 +98,11 @@ namespace etp
                 message = new MQMessage();
                 message.MessageId = MQC.MQMI_NONE;
                 message.Format = MQC.MQFMT_STRING;
-                message.CharacterSet = 1208;
-                message.WriteString(data);
+                message.CharacterSet = MQC.CODESET_UTF;
+                byte[] utf16 = Encoding.Unicode.GetBytes(data);
+                byte[] utf8 = Encoding.Convert(Encoding.Unicode, Encoding.UTF8, utf16);
+
+                message.Write(utf8);
 
                 // Set property if your need
                 message.SetStringProperty("TestProperty","Тестовое значение");
@@ -111,7 +114,10 @@ namespace etp
 
                 // Send second message 
                 data = "Тест " + string.Format("{0:yyyy-MM-dd_hh-mm-ss}", DateTime.Now);
-                message.WriteString(data);
+                utf16 = Encoding.Unicode.GetBytes(data);
+                utf8 = Encoding.Convert(Encoding.Unicode, Encoding.UTF8, utf16);
+
+                message.Write(utf8);
                 queue.Put(message, putMessageOptions);
                 message.ClearMessage();
 

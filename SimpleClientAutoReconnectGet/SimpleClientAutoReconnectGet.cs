@@ -4,7 +4,7 @@ using System.Threading;
 using System.Transactions;
 
 using IBM.WMQ;
-
+using System.Text;
 
 namespace etp
 {
@@ -37,7 +37,8 @@ namespace etp
         private MQPutMessageOptions putMessageOptions;
 
         // Message data
-        String data;
+        byte[] data;
+        String str;
 
         /// <summary>
         /// Main entry
@@ -125,20 +126,21 @@ namespace etp
 
                         i++;
 
-                        data = message.ReadString(message.MessageLength);
+                        data = message.ReadBytes(message.MessageLength);
+                        str = Encoding.UTF8.GetString(data);
                         // Get message properties sample
                         // String ApplicationId = message.GetStringProperty("ApplicationId");
                         DateTime date = message.PutDateTime;
                         Console.WriteLine("Message " + i + " msgId " +  BitConverter.ToString(message.MQMD.MsgId).Replace("-","") + "  got = " + data + " date = " + date /*+ " ApplicationId = " + ApplicationId*/);
 
                         // Sample of error check
-                        if (data.StartsWith("ошибка"))
+                        if (str.StartsWith("ошибка"))
                         {
                             errorQueue.Put(message/*, putMessageOptions*/);
                             Console.WriteLine("Message " + i + " msgId " + BitConverter.ToString(message.MQMD.MsgId).Replace("-", "") + " put to backout queue " + errorQueue.Name);
                         }
 
-                        if (data.StartsWith("откат"))
+                        if (str.StartsWith("откат"))
                         {
                             throw new Exception("Откат сообщения");
                         }
